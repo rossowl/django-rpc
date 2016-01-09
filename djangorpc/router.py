@@ -40,7 +40,7 @@ class RpcRouter(object):
     @property
     def urls(self):
         if not hasattr(self, '_urls'):
-            self._urls = patterns('', *self.get_urls())
+            self._urls = list(self.get_urls())
         return self._urls
 
     def dispatch(self, request, *args, **kwargs):
@@ -59,7 +59,7 @@ class RpcRouter(object):
                 return HttpResponse('<textarea>%s</textarea>' % output)
         else:
             try:
-                requests = json.loads(request.body)
+                requests = json.loads(request.body.decode())
             except (ValueError, KeyError, IndexError):
                 # TODO: add loagging and return error event
                 requests = []
@@ -205,7 +205,7 @@ class RpcRouter(object):
                 'method': method,
                 'result': self.execute_func(func, *args, **extra_kwargs)
             }
-        except RpcExceptionEvent, e:
+        except RpcExceptionEvent as e:
             return {
                 'tid': rd['tid'],
                 'type': 'exception',
